@@ -59,29 +59,6 @@ class Conv:
 
         self.model = Model(inputs=[input_img, input_num], outputs=z)
 
-        # def add_conv_block(model, num_filters):
-        #     model.add(Conv2D(num_filters, 3, activation='relu', padding='same'))
-        #     model.add(BatchNormalization())
-        #     model.add(Conv2D(num_filters, 3, activation='relu'))
-        #     model.add(MaxPooling2D(pool_size=2))
-        #     model.add(Dropout(0.5))
-        #
-        #     return model
-        #
-        # self.model = tf.keras.models.Sequential()
-        # self.model.add(Input(shape=(image_size, image_size, 3)))
-        #
-        # self.model = add_conv_block(self.model, 32)
-        # self.model = add_conv_block(self.model, 64)
-        # self.model = add_conv_block(self.model, 128)
-        # self.model = add_conv_block(self.model, 256)
-        #
-        # self.model.add(Flatten())
-        # self.model.add(Flatten())
-        # # self.model = concatenate([out_conv, out_num])
-        # self.model.add(Dense(100))
-        # self.model.add(Dense(3))
-
         self.model.compile(
             loss=tf.keras.losses.MeanAbsolutePercentageError(),
             optimizer='adam', metrics=['accuracy']
@@ -164,7 +141,7 @@ def main():
     model = Conv()
     model.create_model(mini_img_size, numeric_input_len)
     batch_size = 5
-    num_iter = 30
+    num_iter = 10
     epochs = 2
 
     val_data = names_to_arr_num(val_names, train_x_num)
