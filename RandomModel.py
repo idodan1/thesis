@@ -1,4 +1,5 @@
 import numpy as np
+from functions import *
 
 
 class RandomModel:
@@ -6,7 +7,7 @@ class RandomModel:
         self.train_y, self.test_y = train_y, test_y
 
     def create_model(self):
-        self.cols = [[self.train_y[i][j] for i in range(len(self.train_y))] for j in range(len(self.train_y[0]))]
+        self.cols = [self.train_y[col].values for col in self.train_y.columns]
         self.means, self.std = [np.mean(self.cols[i]) for i in range(len(self.cols))], [np.std(self.cols[i]) for i in
                                                                                         range(len(self.cols))]
 
@@ -19,4 +20,8 @@ class RandomModel:
         return [p/total for p in predictions]
 
     def predict_test(self):
-        return [self.predict(0) for _ in range(len(self.train_y))]
+        return np.array([self.predict(0) for _ in range(len(self.train_y))])
+
+    def calc_loss(self, predictions):
+        test_y = [list(rows.values) for index, rows in self.train_y.iterrows()]
+        return calc_loss(test_y, predictions)
