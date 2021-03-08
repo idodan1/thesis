@@ -20,8 +20,8 @@ class RandomModel:
         return [p/total for p in predictions]
 
     def predict_test(self):
-        return np.array([self.predict(0) for _ in range(len(self.train_y))])
+        return np.array([self.predict(0) for _ in range(len(self.test_y))])
 
     def calc_loss(self, predictions):
-        test_y = [list(rows.values) for index, rows in self.train_y.iterrows()]
+        test_y = [list(rows.values) for index, rows in self.test_y.iterrows()]
         return calc_loss(test_y, predictions)

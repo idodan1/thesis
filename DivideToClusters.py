@@ -59,49 +59,51 @@ k_max = 30
 all_data_df = pd.read_excel(all_data_file, index_col=0)[start_index: last_index]
 with open('texture_master_cols', 'rb') as f:
     data_cols = pickle.load(f)
-data_cols.remove('sample')
 data = all_data_df[data_cols]
 
-"""
-gap, reference_inertia, ondata_inertia = compute_gap(KMeans(), data, k_max)
-line1, = plt.plot(range(1, k_max+1), reference_inertia,
-         '-o', label='reference')
-line2, = plt.plot(range(1, k_max+1), ondata_inertia,
-         '-o', label='data')
-plt.xlabel('k')
-plt.ylabel('log(inertia)')
-plt.legend((line1, line2), ('reference', 'data'))
-plt.show()
 
-plt.plot(range(1, k_max+1), gap, '-o')
-plt.ylabel('gap')
-plt.xlabel('k')
-plt.show()
-"""
+# gap, reference_inertia, ondata_inertia = compute_gap(KMeans(), data, k_max)
+# line1, = plt.plot(range(1, k_max+1), reference_inertia,
+#          '-o', label='reference')
+# line2, = plt.plot(range(1, k_max+1), ondata_inertia,
+#          '-o', label='data')
+# plt.xlabel('k')
+# plt.ylabel('log(inertia)')
+# plt.legend((line1, line2), ('reference', 'data'))
+# plt.show()
+#
+# plt.plot(range(1, k_max+1), gap, '-o')
+# plt.ylabel('gap')
+# plt.xlabel('k')
+# plt.show()
 
-chosen_k = 7
+
+chosen_k = 6
 kmeans = KMeans(init='random',
                 n_clusters=chosen_k,
                 n_init=10, max_iter=1000, random_state=42)
 kmeans.fit(data)
 centroids = kmeans.cluster_centers_
 
-"""
-fig, axes = plt.subplots(nrows=1, ncols=3,figsize=(20,5))
-for i in range(3):
-    axes[i].scatter(data[data_cols[i-1]], data[data_cols[i-2]], c=kmeans.labels_.astype(float), s=50, alpha=0.5)
-    axes[i].scatter(centroids[:, i-1], centroids[:, i-2], c='red', s=50)
+# fig, axes = plt.subplots(nrows=1, ncols=3,figsize=(20,5))
+# for i in range(3):
+#     axes[i].scatter(data[data_cols[i-1]], data[data_cols[i-2]], c=kmeans.labels_.astype(float), s=50, alpha=0.5)
+#     axes[i].scatter(centroids[:, i-1], centroids[:, i-2], c='red', s=50, label=)
+#     axes[i].set_xlabel(data_cols[i-1])
+#     axes[i].set_ylabel(data_cols[i-2])
+#     axes[i].set_title("{0} to {1}".format(data_cols[i-1], data_cols[i-2]))
+#     axes[i].legend()
+#
+# plt.show()
 
-plt.show()
-"""
 
 data['cluster'] = kmeans.predict(data)
-# print(data['cluster'])
-# print(data['cluster'].value_counts())
+# # print(data['cluster'])
+# # print(data['cluster'].value_counts())
 train, test = divide_to_test_n_train(data, chosen_k)
 print(train)
 print(test)
-# with open('train_nums', 'wb') as f:
-#     pickle.dump(train, f)
-# with open('test_nums', 'wb') as f:
-#     pickle.dump(test, f)
+with open('train_nums', 'wb') as f:
+    pickle.dump(train, f)
+with open('test_nums', 'wb') as f:
+    pickle.dump(test, f)

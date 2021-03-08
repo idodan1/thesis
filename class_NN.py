@@ -20,13 +20,12 @@ from functions import *
 
 
 class NN:
-    def __init__(self, train_x, test_x, train_y, test_y, features_list):
-        self.train_x, self.test_x, self.train_y, self.test_y = select_features(train_x, features_list), select_features(
-            test_x, features_list), train_y, test_y
+    def __init__(self, train_x, test_x, train_y, test_y):
+        self.train_x, self.test_x, self.train_y, self.test_y = train_x, test_x, train_y, test_y
 
     def create_model(self):
         self.model = tf.keras.models.Sequential()
-        self.model.add(Input(shape=len(self.train_x[0])))
+        self.model.add(Input(shape=len(self.train_x.columns)))
 
         num_of_neurons = 200
         self.model.add(Dense(num_of_neurons, activation=activations.relu))
@@ -43,11 +42,12 @@ class NN:
         )
 
     def train(self, val_percent=0.7):
-        val_index = int(len(self.train_x) * 0.7)
+        x = [list(rows.values) for index, rows in self.train_x.iterrows()]
+        y = [list(rows.values) for index, rows in self.train_y.iterrows()]
+        val_index = int(len(x) * 0.7)
         self.history = self.model.fit(
-            self.train_x[:val_index], self.train_y[:val_index],
-            validation_data=(self.train_x[val_index:], self.train_y[val_index:]),
-            ##### check this don't want to touch the test before validation
+            x[:val_index], y[:val_index],
+            validation_data=(x[val_index:], y[val_index:]),
             epochs=200, batch_size=2, verbose=0
         )
 
@@ -57,6 +57,9 @@ class NN:
         return [p / total for p in predictions]
 
     def predict_test(self):
-        return [self.predict(x) for x in self.train_x]
+        test_x = [list(rows.values) for index, rows in self.test_x.iterrows()]
+        return [self.predict(x) for x in test_x]
 
-
+    def calc_loss(self, predictions):
+        test_y = [list(rows.values) for index, rows in self.test_y.iterrows()]
+        return calc_loss(test_y, predictions)
