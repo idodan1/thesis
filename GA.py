@@ -1,5 +1,5 @@
 import random
-import numpy as np
+
 
 def create_pop(feature_len, pop_size=30):
     return [[0 if random.random() > 0.5 else 1 for _ in range(feature_len)] for _ in range(pop_size)]

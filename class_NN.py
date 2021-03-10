@@ -17,22 +17,19 @@ from tensorflow.keras.layers import Dropout, Flatten, Input, Dense
 from tensorflow.keras import activations
 import tensorflow as tf
 from functions import *
+from tensorflow.keras.callbacks import EarlyStopping
 
 
 class NN:
     def __init__(self, train_x, test_x, train_y, test_y):
         self.train_x, self.test_x, self.train_y, self.test_y = train_x, test_x, train_y, test_y
 
-    def create_model(self):
+    def create_model(self, num_of_neurons):
         self.model = tf.keras.models.Sequential()
         self.model.add(Input(shape=len(self.train_x.columns)))
 
-        num_of_neurons = 200
-        self.model.add(Dense(num_of_neurons, activation=activations.relu))
-        self.model.add(Dense(num_of_neurons / 2, activation=activations.relu))
-        self.model.add(Dense(num_of_neurons / 4, activation=activations.relu))
-        self.model.add(Dense(num_of_neurons / 5, activation=activations.relu))
-        self.model.add(Dense(num_of_neurons / 10, activation=activations.relu))
+        for i in range(len(num_of_neurons)):
+            self.model.add(Dense(num_of_neurons[i]*10, activation=activations.relu))
         self.model.add(Dense(3))
 
         self.model.compile(
@@ -44,11 +41,12 @@ class NN:
     def train(self, val_percent=0.7):
         x = [list(rows.values) for index, rows in self.train_x.iterrows()]
         y = [list(rows.values) for index, rows in self.train_y.iterrows()]
+        stop_when_enough = EarlyStopping(monitor='val_loss', min_delta=0, patience=15, restore_best_weights=True)
         val_index = int(len(x) * 0.7)
         self.history = self.model.fit(
             x[:val_index], y[:val_index],
             validation_data=(x[val_index:], y[val_index:]),
-            epochs=200, batch_size=2, verbose=0
+            epochs=500, batch_size=5, verbose=0, callbacks=stop_when_enough
         )
 
     def predict(self, x):
