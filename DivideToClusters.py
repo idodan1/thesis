@@ -52,6 +52,9 @@ def divide_to_test_n_train(data, num_of_clusters):
         train.extend(the_rest)
     return train, test
 
+
+with open('train_nums', 'rb') as f:
+    train_nums = pickle.load(f)
 all_data_file = 'soil_data_2020_all data.xlsx'
 start_index = 2
 last_index = start_index + 63
@@ -60,7 +63,7 @@ all_data_df = pd.read_excel(all_data_file, index_col=0)[start_index: last_index]
 with open('texture_master_cols', 'rb') as f:
     data_cols = pickle.load(f)
 data = all_data_df[data_cols]
-
+data = data.ix[train_nums]
 
 # gap, reference_inertia, ondata_inertia = compute_gap(KMeans(), data, k_max)
 # line1, = plt.plot(range(1, k_max+1), reference_inertia,
@@ -85,25 +88,32 @@ kmeans = KMeans(init='random',
 kmeans.fit(data)
 centroids = kmeans.cluster_centers_
 
-# fig, axes = plt.subplots(nrows=1, ncols=3,figsize=(20,5))
-# for i in range(3):
-#     axes[i].scatter(data[data_cols[i-1]], data[data_cols[i-2]], c=kmeans.labels_.astype(float), s=50, alpha=0.5)
-#     axes[i].scatter(centroids[:, i-1], centroids[:, i-2], c='red', s=50, label=)
-#     axes[i].set_xlabel(data_cols[i-1])
-#     axes[i].set_ylabel(data_cols[i-2])
-#     axes[i].set_title("{0} to {1}".format(data_cols[i-1], data_cols[i-2]))
-#     axes[i].legend()
-#
-# plt.show()
+fig, axes = plt.subplots(nrows=1, ncols=3,figsize=(20,5))
+for i in range(3):
+    axes[i].scatter(data[data_cols[i-1]], data[data_cols[i-2]], c=kmeans.labels_.astype(float), s=50, alpha=0.5, label='g')
+    axes[i].scatter(centroids[:, i-1], centroids[:, i-2], c='red', s=50, label="centroids")
+    axes[i].set_xlabel(data_cols[i-1])
+    axes[i].set_ylabel(data_cols[i-2])
+    axes[i].set_title("{0} to {1}".format(data_cols[i-1], data_cols[i-2]))
+    axes[i].legend()
+
+plt.show()
 
 
 data['cluster'] = kmeans.predict(data)
 # # print(data['cluster'])
 # # print(data['cluster'].value_counts())
-train, test = divide_to_test_n_train(data, chosen_k)
+# train, test = divide_to_test_n_train(data, chosen_k)
+train, val = divide_to_test_n_train(data, chosen_k)
 print(train)
-print(test)
-with open('train_nums', 'wb') as f:
+# print(test)
+print(val)
+# with open('train_nums', 'wb') as f:
+#     pickle.dump(train, f)
+# with open('test_nums', 'wb') as f:
+#     pickle.dump(test, f)
+with open('train_nums_net', 'wb') as f:
     pickle.dump(train, f)
-with open('test_nums', 'wb') as f:
-    pickle.dump(test, f)
+with open('val_nums_net', 'wb') as f:
+    pickle.dump(val, f)
+

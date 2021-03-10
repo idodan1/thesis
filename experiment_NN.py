@@ -7,8 +7,10 @@ all_data_file = 'soil_data_2020_all data.xlsx'
 all_data_df = pd.read_excel(all_data_file, index_col=0)[2:]
 results_df = pd.read_excel('results net.xlsx', index=False)
 
-with open('train_nums', 'rb') as f:
+with open('train_nums_net', 'rb') as f:
     train_nums = pickle.load(f)
+with open('val_nums_net', 'rb') as f:
+    val_nums = pickle.load(f)
 with open('test_nums', 'rb') as f:
     test_nums = pickle.load(f)
 with open('cols_for_model', 'rb') as f:
@@ -25,6 +27,7 @@ feature_len = len(cols_for_model)
 num_iter = 20
 pop_size = 30
 train_df = all_data_df.ix[train_nums]
+val_df = all_data_df.ix[val_nums]
 test_df = all_data_df.ix[test_nums]
 length_penalty = 0.001
 max_num_layers = 7
@@ -32,7 +35,7 @@ min_num_neurons = 3
 max_num_neurons = 10
 best_member, best_loss, best_member_net = iterate(model, num_iter, feature_len, pop_size, train_df, test_df,
                                                   texture_cols, cols_for_model, length_penalty, max_num_layers,
-                                                  min_num_neurons, max_num_neurons)
+                                                  min_num_neurons, max_num_neurons, val_df)
 
 print('min model lost = {0}'.format(best_loss))
 print("num of features = {0}".format(sum(best_member)))

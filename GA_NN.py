@@ -43,11 +43,13 @@ def mutate_net(p):
     return res
 
 
-def calc_fitness(p, p_net, model_type, train_df, test_df, train_y, test_y, all_cols_for_model, length_penalty):
+def calc_fitness(p, p_net, model_type, train_df, test_df, train_y, test_y, all_cols_for_model, length_penalty,
+                 val_df, val_y):
     cols_for_model = [all_cols_for_model[i] for i in range(len(all_cols_for_model)) if p[i] == 1]
     train_x = train_df[cols_for_model]
+    val_x = val_df[cols_for_model]
     test_x = test_df[cols_for_model]
-    model = model_type(train_x, test_x, train_y, test_y)
+    model = model_type(train_x, val_x, test_x, train_y, val_y, test_y)
     model.create_model(p_net)
     model.train()
     predictions = model.predict_test()
@@ -75,17 +77,17 @@ def print_best_loss(i, best_loss, best_member, best_member_net):
 
 
 def iterate(model, num_iter, feature_len, pop_size, train_df, test_df, texture_cols, cols_for_model, length_penalty,
-            max_num_layers, min_num_neurons, max_num_neurons):
+            max_num_layers, min_num_neurons, max_num_neurons, val_df=[]):
     pop = create_pop(feature_len, pop_size)
     pop_net = create_pop_net(max_num_layers, min_num_neurons, max_num_neurons, pop_size)
     leave_val = int(pop_size * 0.2)
-    train_y, test_y = train_df[texture_cols], test_df[texture_cols]
+    train_y, val_y, test_y = train_df[texture_cols], val_df[texture_cols], test_df[texture_cols]
     best_fit = 0
     best_member = [1]*feature_len
     best_member_net = [1]
     for i in range(num_iter):
-        fitness = [calc_fitness(pop[i], pop_net[i], model, train_df, test_df, train_y, test_y, cols_for_model, length_penalty)
-                   for i in range(len(pop))]
+        fitness = [calc_fitness(pop[i], pop_net[i], model, train_df, test_df, train_y, test_y, cols_for_model,
+                                length_penalty, val_df, val_y) for i in range(len(pop))]
         if to_loss(best_fit, best_member, length_penalty) > to_loss(max(fitness), pop[fitness.index(max(fitness))],
                                                                     length_penalty):
             best_fit = max(fitness)
