@@ -17,11 +17,11 @@ with open('texture_master_cols', 'rb') as f:
 with open('texture_hydro_cols', 'rb') as f:
     texture_hydro_cols = pickle.load(f)
 
-
+texture_cols = texture_hydro_cols
 train_df = all_data_df.ix[train_nums]
-train_x, train_y = train_df[cols_for_model], train_df[texture_master_cols]
+train_x, train_y = train_df[cols_for_model], train_df[texture_cols]
 test_df = all_data_df.ix[test_nums]
-test_x, test_y = test_df[cols_for_model], test_df[texture_master_cols]
+test_x, test_y = test_df[cols_for_model], test_df[texture_cols]
 
 num_of_iter = 100000
 history = []

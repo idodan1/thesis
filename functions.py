@@ -4,7 +4,9 @@ import numpy as np
 import glob
 import cv2 as cv
 import pandas as pd
-from PIL import Image, ImageOps
+from PIL import Image
+from tensorflow.keras import activations
+import pickle
 
 
 def calc_loss(y_true, y_pred):
@@ -101,11 +103,47 @@ def create_mini_images(img_arr, mini_image_size):
     return np.array(mini_images_lst)
 
 
-# location = 'images_cut_n_augment'
-# train_y_df = pd.read_excel("train_y.xlsx", index_col=0).sort_values(by=['sample']).drop(['cluster'], axis=1)
-# test_y_df = pd.read_excel("test_y.xlsx", index_col=0).sort_values(by=['sample']).drop(['cluster'], axis=1)
-# x_train, y_train = create_data(location, train_y_df)
-# x_test, y_test = create_data(location, test_y_df)
+def create_df_n_lists_for_model():
+    all_data_file = 'soil_data_2020_all data.xlsx'
+    all_data_df = pd.read_excel(all_data_file, index_col=0)[2:]
 
+    with open('train_nums_net', 'rb') as f:
+        train_nums = pickle.load(f)
+    with open('val_nums_net', 'rb') as f:
+        val_nums = pickle.load(f)
+    with open('test_nums', 'rb') as f:
+        test_nums = pickle.load(f)
+    with open('cols_for_model', 'rb') as f:
+        cols_for_model = pickle.load(f)
+    with open('texture_master_cols', 'rb') as f:
+        texture_master_cols = pickle.load(f)
+    with open('texture_hydro_cols', 'rb') as f:
+        texture_hydro_cols = pickle.load(f)
+
+    activation_funcs = [activations.sigmoid, activations.relu, activations.linear]
+    return all_data_df, train_nums, val_nums, test_nums, cols_for_model, texture_master_cols, \
+           texture_hydro_cols, activation_funcs
+
+
+def write_results(model, cols_for_model, best_loss, best_member, best_member_net, best_activation,
+                  texture_name, activation_funcs):
+    results_df = pd.read_excel('results net.xlsx', index=False)
+    if str(model) not in results_df['model name'].values or \
+            (results_df.loc[results_df['model name'] == str(model)])['texture type'].values[0] != texture_name:
+        model_cols = [cols_for_model[i] for i in range(len(cols_for_model)) if best_member[i] == 1]
+        row_df = pd.DataFrame([[str(model), best_loss, texture_name, str(model_cols), str(best_member_net),
+                                str(best_activation)]], columns=results_df.columns)
+        results_df = pd.concat([results_df, row_df], ignore_index=True)
+    else:
+        if (results_df.loc[(results_df['model name'] == str(model)) &
+                           (results_df['texture type'] == texture_name)])['model loss'].values[0] > best_loss:
+            index = list(results_df.loc[results_df['model name'] == str(model)].index)[0]
+            model_cols = [cols_for_model[i] for i in range(len(cols_for_model)) if best_member[i] == 1]
+            results_df.loc[index, 'model loss'] = best_loss
+            results_df.loc[index, 'features'] = str(model_cols)
+            results_df.loc[index, 'net architecture'] = str(best_member_net)
+            results_df.loc[index, 'activations'] = str([activation_funcs[k] for k in best_activation])
+
+    results_df.to_excel('results net.xlsx', index=False)
 
 

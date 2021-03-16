@@ -17,6 +17,7 @@ from tensorflow.keras.layers import Dropout, Flatten, Input, Dense, concatenate
 from tensorflow.keras import activations, Model
 import tensorflow as tf
 from functions import *
+from tensorflow.keras.callbacks import EarlyStopping
 
 
 class Conv:
@@ -43,13 +44,10 @@ class Conv:
         x = Model(inputs=input_img, outputs=x)
 
         # create net for numeric data
-        num_of_neurons = 200
         input_num = Input(shape=numeric_size)
-        y = Dense(num_of_neurons, activation='relu')(input_num)
-        y = Dense(num_of_neurons/2, activation='relu')(y)
-        y = Dense(num_of_neurons/4, activation='relu')(y)
-        y = Dense(num_of_neurons/5, activation='relu')(y)
-        y = Dense(num_of_neurons/10, activation='relu')(y)
+        y = Dense(50, activation='relu')(input_num)
+        y = Dense(50, activation='relu')(y)
+        y = Dense(50, activation='relu')(y)
         y = Model(inputs=input_num, outputs=y)
 
         combined = concatenate([x.output, y.output])
@@ -65,11 +63,11 @@ class Conv:
         )
 
     def train(self, x_train_img, x_train_num, y_train, x_val_img, x_val_num, y_val, batch_size, epochs, val_percent=0.7):
-        # val_index = int(len(self.train_x) * val_percent)
+        stop_when_enough = EarlyStopping(monitor='loss', min_delta=0, patience=5, restore_best_weights=True)
         self.history = self.model.fit(
             x=[x_train_img, x_train_num], y=y_train,
             validation_data=([x_val_img, x_val_num], y_val),
-            epochs=epochs, batch_size=batch_size, verbose=0
+            epochs=epochs, batch_size=batch_size, verbose=0, callbacks=stop_when_enough
             )
 
     def predict(self, x):
@@ -142,7 +140,7 @@ def main():
     model.create_model(mini_img_size, numeric_input_len)
     batch_size = 5
     num_iter = 10
-    epochs = 2
+    epochs = 10
 
     val_data = names_to_arr_num(val_names, train_x_num)
     val_x_img, val_x_num, val_y = names_to_arr_img(val_names, df_texture, val_data, mini_img_size, num_of_mini_img)
@@ -183,17 +181,28 @@ def main():
 
     # test data
     loss = 0
+    all_predictions = []
+    all_y = []
     for i in range(len(test_names)):
         x, y = create_data(test_names[i], df_texture)
         x_mini = create_mini_images(x, mini_img_size)
         numeric_data = np.array(names_to_arr_num([test_names[i]], test_x_num)[0])
         numeric_data = np.array([numeric_data for _ in range(x_mini.shape[0])])
         predictions = model.predict([x_mini, numeric_data])
-        p_loss = calc_loss(predictions, y)
-        loss += p_loss
+        all_predictions.append(predictions)
+        all_y.append(y)
+        # p_loss = calc_loss(predictions, y)
+        # loss += p_loss
+    loss = calc_loss(all_y, all_predictions)
     print(loss)
 
 main()
 
 
 
+"""
+1: run from the beginning with the hydro data, see if the net can get better results there.
+2: look at the loss calculation of the conv net, see if it is done properly
+3: look at the differences among the set of images created from one data, check if it even valid to use
+   the split of the images or it is just allot of noise. 
+"""
