@@ -107,7 +107,7 @@ def create_df_n_lists_for_model():
     all_data_file = 'soil_data_2020_all data.xlsx'
     all_data_df = pd.read_excel(all_data_file, index_col=0)[2:]
 
-    with open('train_nums_net', 'rb') as f:
+    with open('train_nums', 'rb') as f:
         train_nums = pickle.load(f)
     with open('val_nums_net', 'rb') as f:
         val_nums = pickle.load(f)
@@ -147,3 +147,8 @@ def write_results(model, cols_for_model, best_loss, best_member, best_member_net
     results_df.to_excel('results net.xlsx', index=False)
 
 
+def create_heat_map(df, cols_for_map):
+    df = df[cols_for_map]
+    df = df.astype(float)
+    corr = df.corr()
+    corr.style.background_gradient(cmap='coolwarm')

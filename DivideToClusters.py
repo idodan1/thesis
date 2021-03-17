@@ -53,8 +53,8 @@ def divide_to_test_n_train(data, num_of_clusters):
     return train, test
 
 
-with open('train_nums', 'rb') as f:
-    train_nums = pickle.load(f)
+# with open('train_nums', 'rb') as f:
+#     train_nums = pickle.load(f)
 all_data_file = 'soil_data_2020_all data.xlsx'
 start_index = 2
 last_index = start_index + 63
@@ -63,7 +63,7 @@ all_data_df = pd.read_excel(all_data_file, index_col=0)[start_index: last_index]
 with open('texture_master_cols', 'rb') as f:
     data_cols = pickle.load(f)
 data = all_data_df[data_cols]
-data = data.ix[train_nums]
+# data = data.ix[train_nums]
 
 # gap, reference_inertia, ondata_inertia = compute_gap(KMeans(), data, k_max)
 # line1, = plt.plot(range(1, k_max+1), reference_inertia,
@@ -103,17 +103,19 @@ plt.show()
 data['cluster'] = kmeans.predict(data)
 # # print(data['cluster'])
 # # print(data['cluster'].value_counts())
-# train, test = divide_to_test_n_train(data, chosen_k)
-train, val = divide_to_test_n_train(data, chosen_k)
+train, test = divide_to_test_n_train(data, chosen_k)
+# train, val = divide_to_test_n_train(data, chosen_k)
 print(train)
-# print(test)
-print(val)
-# with open('train_nums', 'wb') as f:
-#     pickle.dump(train, f)
-# with open('test_nums', 'wb') as f:
-#     pickle.dump(test, f)
-with open('train_nums_net', 'wb') as f:
+print(len(train))
+print(test)
+print(len(test))
+# print(val)
+with open('train_nums', 'wb') as f:
     pickle.dump(train, f)
-with open('val_nums_net', 'wb') as f:
-    pickle.dump(val, f)
+with open('test_nums', 'wb') as f:
+    pickle.dump(test, f)
+# with open('train_nums_net', 'wb') as f:
+#     pickle.dump(train, f)
+# with open('val_nums_net', 'wb') as f:
+#     pickle.dump(val, f)
 

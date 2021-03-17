@@ -74,7 +74,9 @@ class Conv:
         predictions = self.model.predict([x])
         prediction = [np.mean(predictions[:, 0]), np.mean(predictions[:, 1]), np.mean(predictions[:, 2])]
         total = sum(prediction) / 100
-        return [p / total for p in prediction]
+        loss = [p / total for p in prediction]
+        print("one loss = {0}".format(loss))
+        return loss
 
     def save_model(self, path):
         self.model.save(path)
@@ -139,8 +141,8 @@ def main():
     model = Conv()
     model.create_model(mini_img_size, numeric_input_len)
     batch_size = 5
-    num_iter = 10
-    epochs = 10
+    num_iter = 3
+    epochs = 3
 
     val_data = names_to_arr_num(val_names, train_x_num)
     val_x_img, val_x_num, val_y = names_to_arr_img(val_names, df_texture, val_data, mini_img_size, num_of_mini_img)
@@ -177,12 +179,13 @@ def main():
     axes[1].set_ylabel('loss')
     axes[0].set_xlabel('iter')
     axes[1].set_xlabel('iter')
-    plt.show()
+    # plt.show()
 
     # test data
     loss = 0
     all_predictions = []
     all_y = []
+    print(len(test_names))
     for i in range(len(test_names)):
         x, y = create_data(test_names[i], df_texture)
         x_mini = create_mini_images(x, mini_img_size)
@@ -201,8 +204,9 @@ main()
 
 
 """
-1: run from the beginning with the hydro data, see if the net can get better results there.
-2: look at the loss calculation of the conv net, see if it is done properly
-3: look at the differences among the set of images created from one data, check if it even valid to use
-   the split of the images or it is just allot of noise. 
+the important thing is to show that with images is better, start from the beginning, check that every step is working
+properly, print everything along the way and see that we get reasonable results there. we have to ge results that are 
+at least as good as the others. one of the classes is getting 0 every time, check it. test names len is 40, check it.
+test size should be 6, we can plot the range of values mini images get so we can show that it is not too big.
+sort this class first, get some kind of a result to show and start preparing to the meeting with ofer
 """
