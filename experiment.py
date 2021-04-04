@@ -17,9 +17,9 @@ with open('test_nums', 'rb') as f:
     test_nums = pickle.load(f)
 with open('cols_for_model', 'rb') as f:
     cols_for_model = pickle.load(f)
-with open('texture_master_cols', 'rb') as f:
+with open('texture cols master sizer', 'rb') as f:
     texture_master_cols = pickle.load(f)
-with open('texture_hydro_cols', 'rb') as f:
+with open('texture cols hydro meter', 'rb') as f:
     texture_hydro_cols = pickle.load(f)
 
 for model in [RandomForest, LinearReg]:
@@ -69,7 +69,7 @@ penalty or maybe others.
 """
 train_df = all_data_df.ix[train_nums]
 test_df = all_data_df.ix[test_nums]
-train_y, test_y = train_df[texture_master_cols], test_df[texture_master_cols]
+train_y, test_y = train_df[texture cols master sizer], test_df[texture cols master sizer]
 
 feature_list = [1]*len(cols_for_model)
 cols_for_model = [cols_for_model[i] for i in range(len(cols_for_model)) if feature_list[i] == 1]

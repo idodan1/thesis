@@ -24,73 +24,61 @@ class Conv:
     # def __init__(self, train_x, test_x, train_y, test_y, features_list):
     #     self.train_x, self.test_x, self.train_y, self.test_y = train_x, test_x, train_y, test_y
 
-    def create_model(self, image_size, numeric_size, num_of_neurons, activation_nums, num_of_blocks, num_of_filters):
+    def create_model(self, image_size, numeric_size, num_of_neurons, activation_nums):
         # create net for images
         def add_conv_block(input_layer, num_filters):
-            _x = Conv2D(num_filters, 3, activation='relu', padding='same')(input_layer)
-            _x = BatchNormalization()(_x)
-            _x = Conv2D(num_filters, 3, activation='relu')(_x)
-            _x = MaxPooling2D(pool_size=2)(_x)
-            _x = Dropout(0.5)(_x)
-            return _x
+            x = Conv2D(num_filters, 3, activation='relu', padding='same')(input_layer)
+            x = BatchNormalization()(x)
+            x = Conv2D(num_filters, 3, activation='relu')(x)
+            x = MaxPooling2D(pool_size=2)(x)
+            x = Dropout(0.5)(x)
+            return x
 
         input_img = Input(shape=(image_size, image_size, 3))
-        x = add_conv_block(input_img, num_of_filters)
-        for i in range(1, num_of_blocks):
-            num_of_filters *= 2
-            x = add_conv_block(x, num_of_filters)
+        x = add_conv_block(input_img, 32)
+        x = add_conv_block(x, 64)
+        x = add_conv_block(x, 128)
+        x = add_conv_block(x, 256)
         x = Flatten()(x)
-        x = Dense(50)(x)
+        x = Dense(100)(x)
         x = Model(inputs=input_img, outputs=x)
 
         # create net for numeric data
         neurons_constant = numeric_size
         activation_funcs = [activations.sigmoid, activations.relu, activations.linear]
         input_num = Input(shape=numeric_size)
-        y = Dense(num_of_neurons[0] * neurons_constant, activation=activation_funcs[activation_nums[0]],
-                  kernel_initializer='random_uniform', bias_initializer='random_uniform')(input_num)
+        y = Dense(num_of_neurons[0] * neurons_constant, activation=activation_funcs[activation_nums[0]])(input_num)
         for i in range(1, len(num_of_neurons)):
-            y = Dense(num_of_neurons[i]*neurons_constant, activation=activation_funcs[activation_nums[i]],
-                  kernel_initializer='random_uniform', bias_initializer='random_uniform')(input_num)
+            y = Dense(num_of_neurons[i]*neurons_constant, activation=activation_funcs[activation_nums[i]])(input_num)
         y = Model(inputs=input_num, outputs=y)
 
         combined = concatenate([x.output, y.output])
-        z = Dense(numeric_size, activation='relu',
-                  kernel_initializer='random_uniform', bias_initializer='random_uniform')(combined)
-        z = Dense(3, activation='linear',
-                  kernel_initializer='random_uniform', bias_initializer='random_uniform')(z)
 
-        # z = Dense(numeric_size, activation='relu',
-        #           kernel_initializer='random_uniform', bias_initializer='random_uniform')(y.output)
-        # z = Dense(3, activation='linear',
-        #           kernel_initializer='random_uniform', bias_initializer='random_uniform')(z)
+        z = Dense(10, activation='relu')(combined)
+        z = Dense(3, activation='relu')(z)
 
-        # self.model = Model(inputs=[input_num], outputs=z)
         self.model = Model(inputs=[input_img, input_num], outputs=z)
-
 
         self.model.compile(
             loss=tf.keras.losses.MeanAbsolutePercentageError(),
             optimizer='adam', metrics=['accuracy']
         )
 
-    def train(self, x_train_img, x_train_num, y_train, x_val_img, x_val_num, y_val, batch_size, epochs):
+    def train(self, x_train_img, x_train_num, y_train, x_val_img, x_val_num, y_val, batch_size, epochs, val_percent=0.7):
         stop_when_enough = EarlyStopping(monitor='loss', min_delta=0, patience=5, restore_best_weights=True)
         self.history = self.model.fit(
             x=[x_train_img, x_train_num], y=y_train,
-            # x=x_train_num, y=y_train,
             validation_data=([x_val_img, x_val_num], y_val),
-            # validation_data=(x_val_num, y_val),
             epochs=epochs, batch_size=batch_size, verbose=0, callbacks=stop_when_enough
             )
 
     def predict(self, x):
         predictions = self.model.predict([x])
-        gap = [(np.max(predictions[:, i]) - np.min(predictions[:, i])) for i in range(3)]
         prediction = [np.mean(predictions[:, 0]), np.mean(predictions[:, 1]), np.mean(predictions[:, 2])]
         total = sum(prediction) / 100
-        norm = [p / total for p in prediction]
-        return norm, gap
+        loss = [p / total for p in prediction]
+        print("one loss = {0}".format(loss))
+        return loss
 
     def save_model(self, path):
         self.model.save(path)
@@ -98,14 +86,12 @@ class Conv:
     def load_model(self, path):
         self.model = tf.keras.load_model(path)
 
-    def calc_loss(self, predictions, test_y):
-        # test_y = [list(rows.values) for index, rows in test_y.iterrows()]
-        return calc_loss(test_y, predictions)
 
-
-def divide_images(images_names, val_set_size, train_num):
-    val_num = np.random.choice(list(train_num), val_set_size)
+def divide_images(images_names, val_set_size):
+    train_num = pd.read_excel("train_x.xlsx")['sample'].values
+    val_num = np.random.choice(train_num, val_set_size)
     train_num = list(set(train_num) - set(val_num))
+    test_num = pd.read_excel("test_x.xlsx")['sample'].values
     train_names = []
     val_names = []
     test_names = []
@@ -134,8 +120,8 @@ def names_to_arr_num(sample_names, df_num):
     res = []
     for ad in sample_names:
         label = (ad.split("/")[-1]).split("_")[0]  # cut the label from location
-        line = df_num.ix[int(label)]
-        res.append(list(line.values))
+        line = (df_num.loc[df_num['sample'].astype(str) == label]).drop(['sample'], axis=1)
+        res.append(list(line.values[0]))
     return np.array(res)
 
 

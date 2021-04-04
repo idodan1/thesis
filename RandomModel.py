@@ -3,7 +3,7 @@ from functions import *
 
 
 class RandomModel:
-    def __init__(self, train_x, test_x, train_y, test_y, features_list):
+    def __init__(self, train_x, test_x, train_y, test_y):
         self.train_y, self.test_y = train_y, test_y
 
     def create_model(self):
@@ -21,6 +21,9 @@ class RandomModel:
 
     def predict_test(self):
         return np.array([self.predict(0) for _ in range(len(self.test_y))])
+
+    def predict_train(self):
+        return np.array([self.predict(0) for _ in range(len(self.train_y))])
 
     def calc_loss(self, predictions):
         test_y = [list(rows.values) for index, rows in self.test_y.iterrows()]

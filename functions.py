@@ -65,11 +65,10 @@ def augment_flip(img):
 
 def create_data(ad, df_texture):
     label = (ad.split("/")[-1]).split("_")[0]  # cut the label from location
-    line = df_texture.loc[df_texture['sample'].astype(str) == label]
-    if not line.empty:
-        label = [float(line['sand']), float(line['silt']), float(line['clay'])]
-        img = open_image(ad)
-        img = np.asarray(img, dtype=np.int8)
+    line = df_texture.ix[int(label)]
+    label = [float(line[col]) for col in df_texture.columns]
+    img = open_image(ad)
+    img = np.asarray(img, dtype=np.int8)
     return np.array(img).astype(int), np.array(label)
 
 
@@ -103,26 +102,20 @@ def create_mini_images(img_arr, mini_image_size):
     return np.array(mini_images_lst)
 
 
-def create_df_n_lists_for_model():
-    all_data_file = 'soil_data_2020_all data.xlsx'
-    all_data_df = pd.read_excel(all_data_file, index_col=0)[2:]
-
-    with open('train_nums', 'rb') as f:
+def create_df_n_lists_for_model(all_data_df, texture_name):
+    with open('train nums {0}'.format(texture_name), 'rb') as f:
         train_nums = pickle.load(f)
-    with open('val_nums_net', 'rb') as f:
-        val_nums = pickle.load(f)
-    with open('test_nums', 'rb') as f:
+    # with open('val_nums_net', 'rb') as f:
+    #     val_nums = pickle.load(f)
+    with open('test nums {0}'.format(texture_name), 'rb') as f:
         test_nums = pickle.load(f)
-    with open('cols_for_model', 'rb') as f:
-        cols_for_model = pickle.load(f)
-    with open('texture_master_cols', 'rb') as f:
+    with open('texture cols master sizer', 'rb') as f:
         texture_master_cols = pickle.load(f)
-    with open('texture_hydro_cols', 'rb') as f:
+    with open('texture cols hydro meter', 'rb') as f:
         texture_hydro_cols = pickle.load(f)
 
     activation_funcs = [activations.sigmoid, activations.relu, activations.linear]
-    return all_data_df, train_nums, val_nums, test_nums, cols_for_model, texture_master_cols, \
-           texture_hydro_cols, activation_funcs
+    return train_nums, test_nums, texture_master_cols, texture_hydro_cols, activation_funcs
 
 
 def write_results(model, cols_for_model, best_loss, best_member, best_member_net, best_activation,
@@ -151,4 +144,6 @@ def create_heat_map(df, cols_for_map):
     df = df[cols_for_map]
     df = df.astype(float)
     corr = df.corr()
-    corr.style.background_gradient(cmap='coolwarm')
+    res = corr.style.background_gradient(cmap='coolwarm')
+    res.to_excel('res.xlsx')
+

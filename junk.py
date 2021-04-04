@@ -1,7 +1,7 @@
 import pickle
 
 # l = ['sand_h', 'silt_h', 'clay_h']
-# with open('texture_hydro_cols', 'wb') as f:
+# with open('texture cols hydro meter', 'wb') as f:
 #     pickle.dump(l, f)
 
 # with open('cols_for_model', 'rb') as f:

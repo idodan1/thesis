@@ -23,6 +23,10 @@ class RandomForest:
     test_x = [list(rows.values) for index, rows in self.test_x.iterrows()]
     return [self.predict(x) for x in test_x]
 
+  def predict_train(self):
+    train_x = [list(rows.values) for index, rows in self.train_x.iterrows()]
+    return [self.predict(x) for x in train_x]
+
   def calc_loss(self, predictions):
     test_y = [list(rows.values) for index, rows in self.test_y.iterrows()]
     return calc_loss(test_y, predictions)
