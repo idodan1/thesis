@@ -19,16 +19,28 @@ def calculate_regular_model(model_type, train_x, test_x, train_y, test_y):
     return predictions, predictions_train
 
 
-def get_architecture(texture_name, option):
+def get_architecture(texture_name, option, start_model=0, num_of_models=4):
     df = pd.read_excel('results_all_models/NN/res df {0} division: {1}.xlsx'.format(texture_name, option))
     num_of_neurons_lst = []
     activation_nums_lst = []
-    for i in range(5):
+    for i in range(start_model, num_of_models):
         num_of_neurons, activation_nums = ast.literal_eval(df['num of neurons'][i]),\
                                           ast.literal_eval(df['activation nums'][i])
         num_of_neurons_lst.append(num_of_neurons)
         activation_nums_lst.append(activation_nums)
     return num_of_neurons_lst, activation_nums_lst
+
+
+def get_architecture_img(texture_name, option, start_model=0, num_of_models=4):
+    df = pd.read_excel('results_all_models/conv_img/res df {0} division: {1}.xlsx'.format(texture_name, option))
+    num_of_blocks_lst = []
+    num_of_filters_lst = []
+    for i in range(start_model, num_of_models):
+        num_of_blocks, num_of_filters = df['num of blocks'][i], df['num of filters'][i]
+        num_of_blocks_lst.append(num_of_blocks)
+        num_of_filters_lst.append(num_of_filters)
+    return num_of_blocks_lst, num_of_filters_lst
+
 
 
 def calculate_nn(train_x, test_x, train_y, test_y, texture_name, option, num_of_neurons, activation_nums):

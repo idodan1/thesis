@@ -74,17 +74,64 @@ class Conv:
             optimizer='adam', metrics=['accuracy']
         )
 
+    def create_model_only_image(self, image_size, num_of_blocks, num_of_filters):
+        # create net for images
+        def add_conv_block(input_layer, num_filters):
+            _x = Conv2D(num_filters, 3, activation='relu', padding='same')(input_layer)
+            _x = BatchNormalization()(_x)
+            # _x = Conv2D(num_filters, 3, activation='relu')(_x)
+            _x = Conv2D(num_filters, 3, activation='relu', padding='same')(_x)
+            _x = MaxPooling2D(pool_size=2)(_x)
+            _x = Dropout(0.5)(_x)
+            return _x
+
+        input_img = Input(shape=(image_size, image_size, 3))
+        x = add_conv_block(input_img, num_of_filters)
+        for i in range(1, num_of_blocks):
+            num_of_filters *= 2
+            x = add_conv_block(x, num_of_filters)
+        x = Flatten()(x)
+        x = Dense(50)(x)
+        x = Model(inputs=input_img, outputs=x)
+
+        z = Dense(50, activation='relu',
+                  kernel_initializer='random_uniform', bias_initializer='random_uniform')(x.output)
+        z = Dense(3, activation='linear',
+                  kernel_initializer='random_uniform', bias_initializer='random_uniform')(z)
+        self.model = Model(inputs=[input_img], outputs=z)
+
+
+        self.model.compile(
+            loss=tf.keras.losses.MeanAbsolutePercentageError(),
+            optimizer='adam', metrics=['accuracy']
+        )
+
+
     def train(self, x_train_img, x_train_num, y_train, x_val_img, x_val_num, y_val, batch_size, epochs):
         stop_when_enough = EarlyStopping(monitor='loss', min_delta=0, patience=5, restore_best_weights=True)
         self.history = self.model.fit(
             x=[x_train_img, x_train_num], y=y_train,
-            # x=x_train_num, y=y_train,
             validation_data=([x_val_img, x_val_num], y_val),
-            # validation_data=(x_val_num, y_val),
+            epochs=epochs, batch_size=batch_size, verbose=0, callbacks=stop_when_enough
+            )
+
+    def train_only_image(self, x_train_img, y_train, x_val_img, y_val, batch_size, epochs):
+        stop_when_enough = EarlyStopping(monitor='loss', min_delta=0, patience=5, restore_best_weights=True)
+        self.history = self.model.fit(
+            x=x_train_img, y=y_train,
+            validation_data=(x_val_img, y_val),
             epochs=epochs, batch_size=batch_size, verbose=0, callbacks=stop_when_enough
             )
 
     def predict(self, x):
+        predictions = self.model.predict([x])
+        gap = [(np.max(predictions[:, i]) - np.min(predictions[:, i])) for i in range(3)]
+        prediction = [np.mean(predictions[:, 0]), np.mean(predictions[:, 1]), np.mean(predictions[:, 2])]
+        total = sum(prediction) / 100
+        norm = [p / total for p in prediction]
+        return norm, gap
+
+    def predict_img(self, x):
         predictions = self.model.predict([x])
         gap = [(np.max(predictions[:, i]) - np.min(predictions[:, i])) for i in range(3)]
         prediction = [np.mean(predictions[:, 0]), np.mean(predictions[:, 1]), np.mean(predictions[:, 2])]
@@ -128,6 +175,15 @@ def names_to_arr_img(sample_names, df_texture, numeric_data, mini_img_size, num_
         x_num_data.extend([numeric_data[i] for _ in range(num_of_mini_images)])
         y_res.extend([y for _ in range(num_of_mini_images)])
     return np.array(x_mini), np.array(x_num_data), np.array(y_res)
+
+
+def names_to_arr_img_only_img(sample_names, df_texture, mini_img_size, num_of_mini_images):
+    x_mini, y_res = [], []
+    for i in range(len(sample_names)):
+        x, y = create_data(sample_names[i], df_texture)
+        x_mini.extend(create_mini_images(x, mini_img_size))
+        y_res.extend([y for _ in range(num_of_mini_images)])
+    return np.array(x_mini), np.array(y_res)
 
 
 def names_to_arr_num(sample_names, df_num):

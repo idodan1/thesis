@@ -6,7 +6,8 @@ def main():
     results_dir = 'results_all_models/'
     all_data_file = 'soil_data_2020_all data.xlsx'
     all_data_df = pd.read_excel(all_data_file, index_col=0)[2:]
-    cols_for_model_by_texture = [['ECaV_man', 'ECaV_2020', 'DTM', 'mean_slope', 'NDVI_12_2018'], ['ECaV_man', 'ECaV_2020', 'DTM', 'NDVI_2_2019']]
+    cols_for_model_by_texture = [['ECaV_man', 'ECaV_2020', 'DTM', 'mean_slope', 'NDVI_12_2018'],
+                                 ['ECaV_man', 'ECaV_2020', 'DTM', 'NDVI_2_2019']]
 
     model_name = 'conv'
     cols_for_res_df = ['total loss', 'texture type', "num of features", 'features',
@@ -14,18 +15,19 @@ def main():
                        'activation nums']
     mini_img_size = 100
     img_size = 2000
+    min_num = 5
     max_num = 6
     batch_size = 7
-    val_set_size = 5
-    epochs = 2
-    training_by = 'val_loss'
+    val_set_size = 1
+    epochs = 3
+    training_by = 'loss'
     early_stopping = 10
     num_of_mini_img = img_size // mini_img_size
+    texture_names = ['master sizer', 'hydro meter']
     for option in [' random']:
-        texture_num = 0
-        """change this when changing texture type"""
-        # for texture_name in ['master sizer', 'hydro meter']:
-        for texture_name in ['master sizer']:
+        for texture_name in texture_names:
+        # for texture_name in ['master sizer']:
+            texture_num = texture_names.index(texture_name)
             print("currently {0} {1}".format(option, texture_name))
 
             res_dir_name = results_dir + model_name
@@ -34,7 +36,7 @@ def main():
                 res_df = pd.read_excel(res_df_name)
             else:
                 res_df = pd.DataFrame(columns=cols_for_res_df)
-            num_of_neurons_lst, activation_nums_lst = get_architecture(texture_name, option)
+            num_of_neurons_lst, activation_nums_lst = get_architecture(texture_name, option, 0, 2)
             for k in range(len(num_of_neurons_lst)):
                 num_of_neurons = num_of_neurons_lst[k]
                 activation_nums = activation_nums_lst[k]
@@ -51,10 +53,10 @@ def main():
                 train_x, val_x, test_x = train_df[cols_for_model], test_df[cols_for_model], test_df[cols_for_model]
                 train_y, val_y, test_y = train_df[texture_cols], test_df[texture_cols], test_df[texture_cols]
 
-                for num_of_blocks in range(1, max_num):
-                    for num_of_filters_power in range(1, max_num):
+                for num_of_blocks in range(min_num, max_num):
+                    for num_of_filters_power in range(2, max_num):
                         num_of_filters = 2**num_of_filters_power
-                        print('num_of_blocks num: {0}\n num_of_filters: {1}'.format(num_of_blocks, num_of_filters))
+                        print('num_of_blocks num: {0}\nnum_of_filters: {1}'.format(num_of_blocks, num_of_filters))
                         numeric_size = len(train_x.columns)
                         model = Conv()
 
@@ -74,8 +76,11 @@ def main():
                         best_model = 0
                         counter_early_stopping = 0
                         total_counter = 0
-                        while True:
+                        while total_counter < 100:
                             total_counter += 1
+                            if total_counter % 20 == 0:
+                                print('counter = ', total_counter)
+                                print('lowest loss = ', lowest_loss)
                             s = np.random.choice(range(len(train_names)), batch_size)
                             numeric_data = names_to_arr_num(train_names[s], train_x)
                             batch_x_img, batch_x_num, batch_y = names_to_arr_img(train_names[s], train_y, numeric_data,
