@@ -4,7 +4,7 @@ import ast
 
 
 dir_name = 'results_all_models/'
-models = ['linear reg', "random_forest"]
+models = ['Linear Regression', "Random Forest"]
 measuring_methods = ['master sizer', 'hydro meter']
 cols_for_model = ['ECaV_2019', 'ECaV_man', 'ECaV_2020', 'ECaV_2018', 'DTM', 'mean_slope', 'NDVI_2_2019', 'NDVI_12_2018']
 for model in models:
@@ -29,8 +29,8 @@ for model in models:
 for method in measuring_methods:
     master = dir_name + "res df_master sizer.xlsx"
     hydro = dir_name + "res df_hydro meter.xlsx"
-    linear = dir_name + 'linear reg/' + 'res df_{0}.xlsx'.format(method)
-    forest = dir_name + 'random_forest/' + 'res df_{0}.xlsx'.format(method)
+    linear = dir_name + 'Linear Regression/' + 'res df_{0}.xlsx'.format(method)
+    forest = dir_name + 'Random Forest/' + 'res df_{0}.xlsx'.format(method)
     NN = dir_name + 'NN/' + 'res df_{0}.xlsx'.format(method)
     linear_df = pd.read_excel(linear, index=False)
     forest_df = pd.read_excel(forest, index=False)
@@ -81,8 +81,8 @@ for model in models:
 #     num_of_top_rows = 3
 #     master = dir_name + "res df_master sizer.xlsx"
 #     hydro = dir_name + "res df_hydro meter.xlsx"
-#     linear = dir_name + 'linear reg/' + 'res df_{0}.xlsx'.format(method)
-#     forest = dir_name + 'random_forest/' + 'res df_{0}.xlsx'.format(method)
+#     linear = dir_name + 'Linear Regression/' + 'res df_{0}.xlsx'.format(method)
+#     forest = dir_name + 'Random Forest/' + 'res df_{0}.xlsx'.format(method)
 #     linear_df = pd.read_excel(linear, index=False)[:num_of_top_rows]
 #     forest_df = pd.read_excel(forest, index=False)[:num_of_top_rows]
 #     master_permutations = list(master_df['permutation num'].values)

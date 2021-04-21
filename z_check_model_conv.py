@@ -9,7 +9,7 @@ def main():
     cols_for_model_by_texture = [['ECaV_man', 'ECaV_2020', 'DTM', 'mean_slope', 'NDVI_12_2018'],
                                  ['ECaV_man', 'ECaV_2020', 'DTM', 'NDVI_2_2019']]
 
-    model_name = 'conv'
+    model_name = 'Conv'
     cols_for_res_df = ['total loss', 'texture type', "num of features", 'features',
                        "num of blocks", 'num of filters', 'training by', 'early_stopping', 'num of neurons',
                        'activation nums']

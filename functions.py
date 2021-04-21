@@ -7,6 +7,8 @@ import pandas as pd
 from PIL import Image
 from tensorflow.keras import activations
 import pickle
+import os
+import ast
 
 
 def calc_loss(y_true, y_pred):
@@ -147,3 +149,145 @@ def create_heat_map(df, cols_for_map):
     res = corr.style.background_gradient(cmap='coolwarm')
     res.to_excel('res.xlsx')
 
+
+def get_train_test_cols(texture_name):
+    all_data_file = 'soil_data_2020_all data.xlsx'
+    all_data_df = pd.read_excel(all_data_file, index_col=0)[2:]
+    with open('train nums', 'rb') as f:
+        train_nums = pickle.load(f)
+    with open('test nums', 'rb') as f:
+        test_nums = pickle.load(f)
+    with open('texture cols {0}'.format(texture_name), 'rb') as f:
+        texture_cols = pickle.load(f)
+    with open('winner_cols_{0}'.format(texture_name), 'rb') as f:
+        texture_model_cols = pickle.load(f)
+    train_df = all_data_df.ix[train_nums]
+    """
+        i lost image 13 so i have to erase 13 from train sets
+    """
+    if 13 in train_df.index:
+        train_df = train_df.drop([13], axis='index')
+    test_df = all_data_df.ix[test_nums]
+    if 13 in test_df.index:
+        test_df = test_df.drop([13], axis='index')
+    return train_df, test_df, texture_cols, texture_model_cols
+
+
+def calculate_rmse(y_pred, y_real):
+    return (sum([(y_pred[i] - y_real[i])**2 for i in range(len(y_pred))])/len(y_pred))**0.5
+
+
+def calculate_r_square(predictions_class, y_class, mean):
+    # correlation_matrix = np.corrcoef(curr_p, curr_y)
+    # correlation_xy = correlation_matrix[0, 1]
+    # r_squared = correlation_xy ** 2
+    # r_squared = int(r_squared*1000)/1000
+    differences_line = sum([(predictions_class[k] - y_class[k])**2 for k in range(len(predictions_class))])
+    differences_mean = sum([(y_class[k] - mean)**2 for k in range(len(y_class))])
+    r_squared = 1 - differences_line/differences_mean
+    r_squared = int(r_squared * 1000) / 1000
+    return r_squared
+
+
+def calc_rmses(predictions, test_df, texture_cols):
+    res_model = []
+    for j in range(len(texture_cols)):
+        predictions_class = np.array([predictions[k][j] for k in range(len(predictions))])
+        predictions_class = np.array(predictions_class)
+        y_class = np.array(test_df[texture_cols[j]].values)
+        rmse_class = calculate_rmse(y_class, predictions_class)
+        res_model.append(rmse_class)
+    res_model.append(sum(res_model))
+    return res_model
+
+
+def forget_augmentation(test_names):
+    res = []
+    for name in test_names:
+        if name.split('.')[0][-1] == '0':
+            res.append(name)
+    return res
+
+
+def to_soil_class(threesome):
+    """
+    code that return the class of a soil sample according to usa triangle from:
+     https://www.nrcs.usda.gov/wps/portal/nrcs/detail/soils/survey/?cid=nrcs142p2_054167
+    """
+    if threesome['clay'] >= 40:
+        if 40 <= threesome['silt'] <= 60:
+            return 'silty clay'
+        elif 45 <= threesome['sand'] <= 60:
+            return 'sandy clay'
+        else:
+            return 'clay'
+    elif 35 <= threesome['clay'] <= 40:
+        if 45 <= threesome['sand'] <= 65:
+            return 'sandy clay'
+        elif 20 <= threesome['sand'] <= 45:
+            return 'clay loam'
+        else:
+            return 'silty clay loam'
+    elif 27.5 <= threesome['clay'] <= 35:
+        if 45 <= threesome['sand'] <= 72.5:
+            return 'sandy clay loam'
+        elif 20 <= threesome['sand'] <= 45:
+            return 'clay loam'
+        else:
+            return 'silty clay loam'
+    elif 20 <= threesome['clay'] <= 27.5:
+        if 52.5 <= threesome['sand'] <= 85:
+            return 'sandy clay loam'
+        elif 22.5 <= threesome['sand'] <= 52.5 and threesome['silt'] <= 50:
+            return 'loam'
+        else:
+            return 'silt loam'
+    elif 15 <= threesome['clay'] <= 20:
+        if 52.5 <= threesome['sand']:
+            return 'sandy loam'
+        elif threesome['silt'] <= 50:
+            return 'loam'
+        else:
+            return 'silt loam'
+    elif 10 <= threesome['clay'] <= 15:
+        if 70 <= threesome['sand'] <= 85:
+            return 'loamy sand'
+        if 52.5 <= threesome['sand'] <= 70:
+            return 'sandy loam'
+        elif 35 <= threesome['silt'] <= 50:
+            return 'loam'
+        elif 50 <= threesome['silt'] <= 80:
+            return 'silt loam'
+        else:
+            return 'silt'
+    elif 0 <= threesome['clay'] <= 10:
+        if 85 <= threesome['sand'] <= 100:
+            return 'sand'
+        elif 70 <= threesome['sand'] <= 85:
+            return 'loamy sand'
+        elif 42.5 <= threesome['sand'] <= 70 and threesome['silt'] <= 50:
+            if 7.5 <= threesome['clay'] <= 10:
+                return 'loam'
+            else:
+                return 'sandy loam'
+        elif 42.5 <= threesome['sand'] <= 70 and threesome['silt'] >= 50:
+            return 'silt loam'
+        elif 50 <= threesome['silt'] <= 80:
+            return 'silt loam'
+        else:
+            return 'silt'
+
+def get_results_df(results_df_name, cols_res_df):
+    if os.path.isfile(results_df_name):
+        results_df = pd.read_excel(results_df_name)
+        file_exist = True
+    else:
+        results_df = pd.DataFrame(columns=cols_res_df)
+        file_exist = False
+    return results_df, file_exist
+
+
+def get_best(net_type, texture_type, index=0):
+    df = pd.read_excel('results_all_models/{0}/top5-{1}.xlsx'.format(net_type, texture_type))
+    features = ast.literal_eval(df['features'][index])
+    return features

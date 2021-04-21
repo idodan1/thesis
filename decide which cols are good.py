@@ -1,4 +1,5 @@
 import glob
+import pickle
 import pandas as pd
 import ast
 import matplotlib.pyplot as plt
@@ -21,7 +22,7 @@ def find_losses(col, current_cols, features_n_lost):
 def main():
     cols_for_model = ['ECaV_2019', 'ECaV_man', 'ECaV_2020', 'ECaV_2018', 'DTM', 'mean_slope', 'NDVI_2_2019', 'NDVI_12_2018']
     result_dir_name = 'results_all_models/'
-    models_names = ['linear reg/', 'random_forest/']
+    models_names = ['Linear Regression/', 'Random Forest/']
     res_dir = 'images_choosing_cols/'
     dir_names = [result_dir_name+name for name in models_names]
     with_f = 0
@@ -36,19 +37,18 @@ def main():
         binary_dict = {col: [0, 0] for col in cols_for_model}
         for d in dir_names:
             curr_files = glob.glob(d + "*")
-            curr_files = [f_name for f_name in curr_files if texture_type in f_name and 'division: random' in f_name]
+            curr_files = [f_name for f_name in curr_files if texture_type in f_name]
             for file in curr_files:
-                df = pd.read_excel(file)[['features', 'total loss']]
+                df = pd.read_excel(file)[['features', 'total rmse']]
                 for index, row in df.iterrows():
                     features_list = list(ast.literal_eval(row['features']))
                     features_not_in_list = list(set(cols_for_model) - set(features_list))
                     for f in features_list:
-                        performance_dict[f][with_f] += row['total loss']
+                        performance_dict[f][with_f] += row['total rmse']
                         performance_dict[f][counter_with] += 1
                     for f in features_not_in_list:
-                        performance_dict[f][without_f] += row['total loss']
+                        performance_dict[f][without_f] += row['total rmse']
                         performance_dict[f][counter_without] += 1
-
 
         results_with = [performance_dict[feat][with_f]/performance_dict[feat][counter_with] for feat in performance_dict]
         results_without = [performance_dict[feat][without_f]/performance_dict[feat][counter_without]
@@ -76,13 +76,13 @@ def main():
 
         for d in dir_names:
             curr_files = glob.glob(d + "*")
-            curr_files = [f_name for f_name in curr_files if texture_type in f_name and 'division: random' in f_name]
+            curr_files = [f_name for f_name in curr_files if texture_type in f_name]
             for file in curr_files:
                 features_n_lost = []
-                df = pd.read_excel(file)[['features', 'total loss']]
+                df = pd.read_excel(file)[['features', 'total rmse']]
                 for index, row in df.iterrows():
                     features = list(ast.literal_eval(row['features']))
-                    lost = row['total loss']
+                    lost = row['total rmse']
                     features_n_lost.append([features, lost])
                 for col in cols_for_model:
                     other_cols = list(set(cols_for_model) - set([col]))
@@ -97,6 +97,7 @@ def main():
                         else:
                             binary_dict[col][won] += 1
 
+        cols_won = [col for col in binary_dict if binary_dict[col][won] > binary_dict[col][loser]]
         results_won = [binary_dict[feat][won] for feat in cols_for_model]
         results_lost = [binary_dict[feat][loser] for feat in cols_for_model]
 
@@ -118,6 +119,9 @@ def main():
 
         plt.savefig(res_dir + 'won or lost comparison ' + texture_type)
         # plt.show()
+
+        with open('winner_cols_{0}'.format(texture_type), 'wb') as f:
+            pickle.dump(cols_won, f)
 
 
 main()

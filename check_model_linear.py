@@ -4,7 +4,7 @@ import glob
 
 
 def get_features():
-    df = pd.read_excel('results_all_models/random_forest/res df_hydro meter.xlsx')
+    df = pd.read_excel('results_all_models/Random Forest/res df_hydro meter.xlsx')
     cols = list(df['features'].values)
     cols = [ast.literal_eval(col) for col in cols]
     return cols
@@ -43,7 +43,7 @@ def main():
         train_x, test_x = train_df[cols_for_model], test_df[cols_for_model]
         train_y, test_y = train_df[texture_cols], test_df[texture_cols]
 
-        model_name = 'linear reg'
+        model_name = 'Linear Regression'
         cols_for_res_df = ['total loss', 'texture type', 'features']
         res_dir_name = results_dir + model_name
         res_df_name = res_dir_name + "/res df_{0}.xlsx".format(texture_name)
