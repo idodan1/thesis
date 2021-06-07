@@ -6,7 +6,7 @@ texture_names = ['master sizer', 'hydro meter']
 all_data_file = 'soil_data_2020_all data.xlsx'
 res_df_name = 'descriptive statistics data frame.xlsx'
 all_data_df = pd.read_excel(all_data_file, index_col=0)[2:]
-cols = columns=['Statistic', 'Min', 'Max', '1st Quartile', 'Median', '3rd Quartile', 'Mean', 'Max-Min', 'Standard deviation']
+cols = ['Statistic', 'Min', 'Max', '1st Quartile', 'Median', '3rd Quartile', 'Mean', 'Max-Min', 'Standard deviation']
 res_df = pd.DataFrame(columns=['Statistic', 'Min', 'Max', '1st Quartile', 'Median', '3rd Quartile', 'Mean', 'Standard deviation'])
 for texture_name in texture_names:
     with open('texture cols {0}'.format(texture_name), 'rb') as f:

@@ -44,7 +44,10 @@ class NN:
         )
 
     def predict(self, x):
-        predictions = self.model.predict([x])[0]
+        try:
+            predictions = self.model.predict([x])[0]
+        except:
+            predictions = self.model.predict([list(x)])[0]
         total = sum(predictions) / 100
         return [p / total for p in predictions]
 

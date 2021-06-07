@@ -153,24 +153,32 @@ def create_heat_map(df, cols_for_map):
 def get_train_test_cols(texture_name):
     all_data_file = 'soil_data_2020_all data.xlsx'
     all_data_df = pd.read_excel(all_data_file, index_col=0)[2:]
+    train_nums, test_nums = get_train_test_nums()
+    texture_cols = get_texture_cols(texture_name)
+    with open('winner_cols_{0}'.format(texture_name), 'rb') as f:
+        texture_model_cols = pickle.load(f)
+    train_df = all_data_df.ix[train_nums]
+    test_df = all_data_df.ix[test_nums]
+    return train_df, test_df, texture_cols, texture_model_cols
+
+
+def get_train_test_df():
     with open('train nums', 'rb') as f:
         train_nums = pickle.load(f)
     with open('test nums', 'rb') as f:
         test_nums = pickle.load(f)
+    all_data_df = get_all_data_df()
+    return all_data_df.ix[train_nums], all_data_df.ix[test_nums]
+
+
+def get_texture_cols(texture_name):
     with open('texture cols {0}'.format(texture_name), 'rb') as f:
-        texture_cols = pickle.load(f)
-    with open('winner_cols_{0}'.format(texture_name), 'rb') as f:
-        texture_model_cols = pickle.load(f)
-    train_df = all_data_df.ix[train_nums]
-    """
-        i lost image 13 so i have to erase 13 from train sets
-    """
-    if 13 in train_df.index:
-        train_df = train_df.drop([13], axis='index')
-    test_df = all_data_df.ix[test_nums]
-    if 13 in test_df.index:
-        test_df = test_df.drop([13], axis='index')
-    return train_df, test_df, texture_cols, texture_model_cols
+        return pickle.load(f)
+
+
+def get_all_data_df():
+    all_data_file = 'soil_data_2020_all data.xlsx'
+    return pd.read_excel(all_data_file, index_col=0)[2:]
 
 
 def calculate_rmse(y_pred, y_real):
@@ -276,6 +284,7 @@ def to_soil_class(threesome):
             return 'silt loam'
         else:
             return 'silt'
+
 
 def get_results_df(results_df_name, cols_res_df):
     if os.path.isfile(results_df_name):
