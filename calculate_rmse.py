@@ -1,6 +1,6 @@
 from class_NN import *
 from RandomForest import *
-from LinearRegression import *
+from MlModels import *
 from class_CONV import *
 from class_conv_img import *
 from RandomModel import *
@@ -8,8 +8,8 @@ from RandomModel import *
 
 def add_random_model_results():
     cols_res_df = ['target', "model", 'features', 'validation R^2', 'validation RMSE']
-    random_model_results_master = {'clay_m': 3.3, 'silt_m': 3.06, 'sand_m': 3.55, 'sum rmse': 9.91}
-    random_model_results_hydro = {'clay_h': 4.77, 'silt_h': 4.12, 'sand_h': 4.51, 'sum rmse': 13.69}
+    random_model_results_master = {'clay_m': 2.96, 'silt_m': 3.12, 'sand_m': 3.65, 'sum rmse': 9.73}
+    random_model_results_hydro = {'clay_h': 4.8, 'silt_h': 4.34, 'sand_h': 4.7, 'sum rmse': 13.85}
     for texture_name in ['master sizer', 'hydro meter']:
         curr_dict = random_model_results_master if texture_name == 'master sizer' else random_model_results_hydro
         results_df_name = 'results_all_models/results all models-{0}.xlsx'
@@ -38,36 +38,24 @@ def main():
     results_df_name = 'results_all_models/results all models-{0}.xlsx'
     models_path = 'results_all_models/models/{0}-{1}'
 
-    models_reg = []
-    # models_reg = [RandomForest, LinearReg]
-    models_features = [Conv, Conv_img, NN]
-    models = models_reg + models_features
+    models = [RandomForest, LinearReg, Conv, ConvImg, NN]
     sum_rmse_index = -1
 
     # for texture_name in ['master sizer', 'hydro meter']:
     for texture_name in ['hydro meter']:
         compare_results = False
         results_df, file_exist = get_results_df(results_df_name.format(texture_name), cols_res_df)
-        """
-        the validation set is coming from the test set which is not the right thing to do, we need
-        to change this in all the files so when the code is presented to someone he won't notice that
-        """
         train_df, test_df, texture_cols, cols_for_model = get_train_test_cols(texture_name)
-        train_x, val_x, test_x = train_df[cols_for_model], test_df[cols_for_model], test_df[cols_for_model]
-        train_y, val_y, test_y = train_df[texture_cols], test_df[texture_cols], test_df[texture_cols]
-        test_y_lst = [list(rows.values) for index, rows in test_y.iterrows()]
-        train_y_lst = [list(rows.values) for index, rows in train_y.iterrows()]
+        train_x, test_x = train_df[cols_for_model], test_df[cols_for_model]
+        train_y, test_y = train_df[texture_cols], test_df[texture_cols]
 
         for k in range(len(models)):
             last_sum_rmse = np.inf
             model_type = models[k]
             model_name = model_type.model_name
 
-            if model_type in models_features:
-                features = get_best(model_name, texture_name)
-                model = model_type(train_x, val_x, test_x, train_y, val_y, test_y, features)
-            else:
-                model = model_type(train_x, test_x, train_y, test_y)
+            features = get_best(model_name, texture_name)
+            model = model_type(train_x, test_x, train_y, test_y, features)
 
             model.create_model()
             model.train()

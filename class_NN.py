@@ -6,9 +6,8 @@ from tensorflow.keras.callbacks import EarlyStopping
 class NN:
     model_name = 'NN'
 
-    def __init__(self, train_x, val_x, test_x, train_y, val_y, test_y, feature_dict):
-        self.train_x, self.val_x, self.test_x, self.train_y, self.val_y, self.test_y = train_x, val_x, test_x, train_y,\
-                                                                                       val_y, test_y
+    def __init__(self, train_x, test_x, train_y, test_y, feature_dict):
+        self.train_x, self.test_x, self.train_y, self.test_y = train_x, test_x, train_y, test_y
         self.feature_dict = feature_dict
 
     def create_model(self):
@@ -23,23 +22,22 @@ class NN:
         self.model.add(Dense(3))
 
         self.model.compile(
-            # loss=tf.keras.losses.MeanAbsolutePercentageError(),
             loss=tf.keras.losses.MeanSquaredError(),
             optimizer='adam', metrics=['accuracy']
         )
 
     def train(self):
-        monitor_list = ['loss', 'val_loss']
+        # monitor_list = ['loss', 'val_loss']
         x = [list(rows.values) for index, rows in self.train_x.iterrows()]
         y = [list(rows.values) for index, rows in self.train_y.iterrows()]
-        val_x = [list(rows.values) for index, rows in self.val_x.iterrows()]
-        val_y = [list(rows.values) for index, rows in self.val_y.iterrows()]
-        stop_when_enough = EarlyStopping(monitor=monitor_list[self.feature_dict['monitor']], min_delta=0,
+        # val_x = [list(rows.values) for index, rows in self.val_x.iterrows()]
+        # val_y = [list(rows.values) for index, rows in self.val_y.iterrows()]
+        stop_when_enough = EarlyStopping(monitor='loss', min_delta=0,
                                          patience=self.feature_dict['patience'],
                                          restore_best_weights=(self.feature_dict['restore_best_weights'] == 1))
         self.history = self.model.fit(
             x, y,
-            validation_data=(val_x, val_y),
+            validation_data=(x, y),
             epochs=2000, batch_size=self.feature_dict['batch_size'], verbose=0, callbacks=stop_when_enough
         )
 

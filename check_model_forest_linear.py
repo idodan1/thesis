@@ -1,6 +1,4 @@
-from RandomForest import *
-from LinearRegression import *
-from functions import *
+from MlModels import *
 
 """
 This module examine all the possible subsets of the feature vector with Linear Regression and Random Forest models.
@@ -11,10 +9,10 @@ def main():
     results_dir = 'results_all_models/'
     train_df, test_df = get_train_test_df()
     cols_for_model = ['ECaV_2019', 'ECaV_man', 'ECaV_2020', 'ECaV_2018', 'DTM', 'mean_slope', 'NDVI_2_2019',
-                      'NDVI_12_2018']
+                      'NDVI_12_2018', 'TIR_2_2020', 'TIR_3_2020', 'max_slope']
     cols_for_res_df = ['total rmse', 'permutation num', 'features']
 
-    for model_type in [LinearReg, RandomForest]:
+    for model_type in [RandomForest, LinearReg]:
         for texture_name in ['master sizer', 'hydro meter']:
             texture_cols = get_texture_cols(texture_name)
             res_dir_name = results_dir + model_type.model_name
@@ -38,8 +36,7 @@ def main():
                 predictions = model.predict_test()
                 res_model = calc_rmses(predictions, test_df, texture_cols)
 
-                res_dict = {'total rmse': [res_model[-1]], 'texture type': [texture_name], "num of features": [len(current_cols)],
-                             'permutation num': [i], 'features': [str(current_cols)]}
+                res_dict = {'total rmse': [res_model.sum()], 'permutation num': [i], 'features': [str(current_cols)]}
                 row = pd.DataFrame.from_dict(res_dict)
                 res_df = pd.concat([res_df, row], sort=True)
 

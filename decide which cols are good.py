@@ -20,7 +20,8 @@ def find_losses(col, current_cols, features_n_lost):
 
 
 def main():
-    cols_for_model = ['ECaV_2019', 'ECaV_man', 'ECaV_2020', 'ECaV_2018', 'DTM', 'mean_slope', 'NDVI_2_2019', 'NDVI_12_2018']
+    cols_for_model = ['ECaV_2019', 'ECaV_man', 'ECaV_2020', 'ECaV_2018', 'DTM', 'mean_slope', 'NDVI_2_2019',
+                      'NDVI_12_2018', 'TIR_2_2020', 'TIR_3_2020', 'max_slope']
     result_dir_name = 'results_all_models/'
     models_names = ['Linear Regression/', 'Random Forest/']
     res_dir = 'images_choosing_cols/'
@@ -31,7 +32,7 @@ def main():
     counter_without = 3
     won = 0
     loser = 1
-    font_size = 6
+    font_size = 5
     for texture_type in ['master sizer', 'hydro meter']:
         performance_dict = {col: [0, 0, 0, 0] for col in cols_for_model}
         binary_dict = {col: [0, 0] for col in cols_for_model}

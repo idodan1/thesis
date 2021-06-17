@@ -30,16 +30,19 @@ def main():
             res_model.append(sum(res_model))
             history.append(res_model)
 
-        target_cols.append('sum {0}'.format(texture_name))
+        history = sorted(history, key=lambda x: x[-1])
+        target_cols.append('sum\n{0}'.format(texture_name))
         for i in range(len(target_cols)):
             current_col = [history[k][i] for k in range(len(history))]
+            current_col = sorted(current_col)
             mean, std = np.mean(current_col), np.std(current_col)
             w = 0.01
             n = math.ceil((max(current_col) - min(current_col)) / w)
-            plt.hist(current_col, label='mean = {0:.2f}\nstd = {1:.2f}'.format(mean, std), bins=n)
+            plt.hist(current_col, label='mean = {0:.2f}\nstd = {1:.2f}\n5% values = {2:.2f}'.
+                     format(mean, std, current_col[int(len(current_col)*0.05)]), bins=n)
             plt.ylabel('count')
             plt.xlabel('loss')
-            plt.title('random model loss histogram {0}'.format(target_cols[i]))
+            plt.title('Random model RMSE histogram - {0}'.format(target_cols[i]))
             plt.legend()
             plt.savefig(
                 'results_all_models/random model images/random model loss histogram {0}'.format(target_cols[i]))

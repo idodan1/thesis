@@ -1,4 +1,4 @@
-from class_conv_img import *
+from MlModels import *
 from GA_NN import *
 import copy
 
@@ -14,7 +14,7 @@ def create_permutation(feature_space_original):
 
 
 def main():
-    model_type = Conv_img
+    model_type = ConvImg
     model_name = model_type.model_name
     texture_name = 'master sizer'
     # texture_name = 'hydro meter'
@@ -24,8 +24,8 @@ def main():
                      'mini_image_size_index': [0, 3], 'activation': [0, 3], 'texture_type': texture_name}
 
     # GA parameters
-    pop_size = 60
-    num_iter = 10
+    pop_size = 2
+    num_iter = 2
     leave_val = int(pop_size * 0.2)
     new_pop = True
 
@@ -33,7 +33,7 @@ def main():
     train_x, val_x, test_x = train_df[texture_model_cols], test_df[texture_model_cols], test_df[texture_model_cols]
     train_y, val_y, test_y = train_df[texture_cols], test_df[texture_cols], test_df[texture_cols]
 
-    best_member, best_fit = iterate(model_type, feature_space, train_x, val_x, test_x, train_y, val_y, test_y, test_df,
+    best_member, best_fit = iterate(model_type, feature_space, train_x, test_x, train_y, test_y, test_df,
                                     texture_cols, pop_size, create_permutation, num_iter, model_name, new_pop,
                                     leave_val, texture_name)
     print('best member = {0}'.format(best_member))

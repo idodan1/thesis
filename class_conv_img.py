@@ -1,12 +1,12 @@
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, BatchNormalization
-from tensorflow.keras.layers import Dropout, Flatten, Input, Dense, concatenate
+from tensorflow.keras.layers import Dropout, Flatten, Input, Dense
 from tensorflow.keras import activations, Model
 from functions import *
 from tensorflow.keras.callbacks import EarlyStopping
 import copy
 
 
-class Conv_img:
+class ConvImg:
     model_name = 'conv_img'
 
     def __init__(self, train_x, val_x, test_x, train_y, val_y, test_y, feature_dict):

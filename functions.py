@@ -52,10 +52,10 @@ def plot_textures(texture_df, loss_by_point=0):
     plt.show()
 
 
-def open_image(adress):
-    img = cv.imread(adress)
-    img_convert = cv.cvtColor(img, cv.COLOR_BGR2RGB)
-    return img_convert
+# def open_image(path):
+#     img = cv.imread(path)
+#     img_convert = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+#     return img_convert
 
 
 def augment_flip(img):
@@ -151,14 +151,10 @@ def create_heat_map(df, cols_for_map):
 
 
 def get_train_test_cols(texture_name):
-    all_data_file = 'soil_data_2020_all data.xlsx'
-    all_data_df = pd.read_excel(all_data_file, index_col=0)[2:]
-    train_nums, test_nums = get_train_test_nums()
     texture_cols = get_texture_cols(texture_name)
+    train_df, test_df = get_train_test_df()
     with open('winner_cols_{0}'.format(texture_name), 'rb') as f:
         texture_model_cols = pickle.load(f)
-    train_df = all_data_df.ix[train_nums]
-    test_df = all_data_df.ix[test_nums]
     return train_df, test_df, texture_cols, texture_model_cols
 
 
@@ -197,16 +193,13 @@ def calculate_r_square(predictions_class, y_class, mean):
     return r_squared
 
 
-def calc_rmses(predictions, test_df, texture_cols):
-    res_model = []
-    for j in range(len(texture_cols)):
-        predictions_class = np.array([predictions[k][j] for k in range(len(predictions))])
-        predictions_class = np.array(predictions_class)
-        y_class = np.array(test_df[texture_cols[j]].values)
-        rmse_class = calculate_rmse(y_class, predictions_class)
-        res_model.append(rmse_class)
-    res_model.append(sum(res_model))
-    return res_model
+def calc_rmses(predictions, measured_df, texture_cols):
+    res = pd.DataFrame()
+    predictions, measured_df = predictions.sort_index(), measured_df.sort_index()
+    for c in texture_cols:
+        res[c+'_loss'] = ((measured_df[c] - predictions[c]) ** 2)
+    res = (res.mean())**.5
+    return res
 
 
 def forget_augmentation(test_names):

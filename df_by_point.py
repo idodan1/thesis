@@ -1,6 +1,6 @@
 from class_NN import *
 from RandomForest import *
-from LinearRegression import *
+from MlModels import *
 from class_CONV import *
 from class_conv_img import *
 import matplotlib.patches as mpatches
@@ -24,7 +24,7 @@ def main():
     models_path = 'results_all_models/models/{0}-{1}'
     texture_names = ['master sizer', 'hydro meter']
     models_reg = [RandomForest, LinearReg]
-    models_features = [Conv, Conv_img, NN]
+    models_features = [Conv, ConvImg, NN]
     # models_features = []
     models = models_reg + models_features
 
@@ -186,7 +186,7 @@ def plot_results_model_by_texture_class():
     with open('test nums', 'rb') as f:
         test_nums = pickle.load(f)
     results_dir = 'results_all_models/'
-    models = [RandomForest, LinearReg, Conv, Conv_img, NN]
+    models = [RandomForest, LinearReg, Conv, ConvImg, NN]
     cols_res_df = ['target', "model", 'validation R^2', 'validation RMSE']
     for texture_name in ['master sizer', 'hydro meter']:
         with open('texture cols {0}'.format(texture_name), 'rb') as f:
