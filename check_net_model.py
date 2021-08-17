@@ -18,17 +18,13 @@ def create_permutation(feature_space_original):
 
 
 def main():
-    # for model_type in [NN]:
     for model_type in [NN, ConvImg, Conv]:
-    # model_type = ConvImg
         model_name = model_type.model_name
         feature_space = model_type.feature_space
-        # texture_name = 'master sizer'
-        # texture_name = 'hydro meter'
         for texture_name in ['master sizer', 'hydro meter']:
             # GA parameter
-            pop_size = 2
-            num_iter = 1
+            pop_size = 20
+            num_iter = 15
             leave_val = int(pop_size * 0.1)
             threshold_mutation = 0.1
 
@@ -44,4 +40,8 @@ def main():
 
 
 main()
+
+
+
+
 
