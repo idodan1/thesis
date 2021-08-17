@@ -181,7 +181,8 @@ class ConvImg(NN):
                          range(0, len(img_arr), self.image_size)])
 
     def create_y(self, image_path):
-        label = self.get_label_from_name(image_path)  # cut the label from path
+        label = self.get_label_from_name(image_path)  # cut the label from p
+        # ath
         line = self.train_y.ix[int(label)]
         return pd.DataFrame(columns=self.train_y.columns).append([line]*self.num_of_mini_img, ignore_index=True)
 
@@ -220,7 +221,6 @@ class ConvImg(NN):
             else:
                 counter_early_stopping += 1
 
-        print('num iterations in training conv new:', num_iter)
         if best_weights is not None:
             self.model.set_weights(best_weights)
 
@@ -232,12 +232,25 @@ class ConvImg(NN):
     def predict(self, to_predict):
         data_to_predict, labels = self.create_data_to_predict(to_predict)
         all_predictions = []
+        mini_image_range = []
         for i in range(len(data_to_predict)):
             predictions = self.model.predict(data_to_predict[i])
+            mini_image_range.append([np.min(predictions[:, 0]), np.max(predictions[:, 0]), np.min(predictions[:, 1]), np.max(predictions[:, 1]), np.min(predictions[:, 2]), np.max(predictions[:, 2])])
             prediction = [np.mean(predictions[:, 0]), np.mean(predictions[:, 1]), np.mean(predictions[:, 2])]
             all_predictions.append(prediction)
+        self.pickle_mini_image_gaps(self.model_name, mini_image_range)
         return pd.DataFrame(data=all_predictions, columns=self.train_y.columns,
                             index=labels)
+
+    @staticmethod
+    def pickle_mini_image_gaps(model_name, mini_image_range):
+        file_index = 1
+        pickle_file_name = 'mini_image_range-{0} 0'.format(model_name)
+        while os.path.isfile(pickle_file_name):
+            pickle_file_name = pickle_file_name[:len(pickle_file_name) - 1] + str(file_index)
+            file_index += 1
+        with open(pickle_file_name, 'wb') as f:
+            pickle.dump(mini_image_range, f)
 
 
 class Conv(ConvImg):
@@ -311,6 +324,8 @@ class Conv(ConvImg):
         data_together = [[image_data[i], numeric_data[i*self.num_of_mini_img: (i+1)*self.num_of_mini_img]] for i in
                          range(len(image_data))]
         return data_together, labels
+
+
 
 
 
